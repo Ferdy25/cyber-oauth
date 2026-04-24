@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard - Auth System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+        }
+        .navbar {
+            background: #1a1a2e;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar h2 { color: #e94560; }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .role-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .role-admin { background: #e94560; color: white; }
+        .role-manager { background: #0f3460; color: white; }
+        .role-user { background: #16213e; color: white; }
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .card h3 {
+            color: #1a1a2e;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f2f5;
+        }
+        .endpoint-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .endpoint-btn {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+        }
+        .endpoint-btn:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .method {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+            color: white;
+            margin-right: 10px;
+        }
+        .method-get { background: #28a745; }
+        .method-post { background: #007bff; }
+        .method-put { background: #ffc107; color: #333; }
+        .method-delete { background: #dc3545; }
+        .result-box {
+            background: #1a1a2e;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            display: none;
+        }
+        .btn-logout {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .attr-box {
+            display: inline-block;
+            padding: 3px 10px;
+            background: #f0f2f5;
+            border-radius: 15px;
+            margin: 3px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h2>🔐 Auth System Demo</h2>
+        <div class="user-info">
+            <span>👤 <%= user.username %></span>
+            <span class="role-badge role-<%= user.role %>"><%= user.role %></span>
+            <span class="attr-box">🏢 <%= user.department %></span>
+            <span class="attr-box">🔒 Clearance: <%= user.clearance_level %></span>
+            <span class="attr-box">💎 <%= user.subscription %></span>
+            <button class="btn-logout" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Profile Card -->
+        <div class="card">
+            <h3>WT Authentication</h3>
+            <p>Endpoint ini butuh JWT token yang didapat saat login</p>
+            <button class="endpoint-btn" onclick="testEndpoint('/api/profile', 'GET', 'result-profile')">
+                <span class="method method-get">GET</span>
+                <strong>/api/profile</strong>
+            </button>
+            <div id="result-profile" class="result-box"></div>
+        </div>
+
+        <!-- RBAC Card -->
+        <div class="card">
+            <h3> RBAC (Role-Based Access Control)</h3>
+            <p>Dokumen difilter berdasarkan role user</p>
+            <div class="endpoint-grid">
+                <button class="endpoint-btn" onclick="testEndpoint('/api/documents', 'GET', 'result-rbac')">
+                    <span class="method method-get">GET</span>
+                    <strong>/api/documents</strong>
+                    <br><small>Lihat dokumen (RBAC filter)</small>
+                </button>
+                <button class="endpoint-btn" onclick="testEndpoint('/api/users', 'GET', 'result-rbac')">
+                    <span class="method method-get">GET</span>
+                    <strong>/api/users</strong>
+                    <br><small>Admin only (RBAC)</small>
+                </button>
+            </div>
+            <div id="result-rbac" class="result-box"></div>
+        </div>
+
+        <!-- ABAC Card -->
+        <div class="card">
+            <h3> ABAC (Attribute-Based Access Control)</h3>
+            <p>Akses dokumen berdasarkan atribut (clearance, department, subscription)</p>
+            <div>
+                <input type="number" id="docId" value="1" min="1" max="4" 
+                       style="padding: 10px; width: 100px; margin-right: 10px;">
+                <button class="endpoint-btn" onclick="testDocumentAccess()" style="display: inline-block; width: auto;">
+                    <span class="method method-get">GET</span>
+                    <strong>/api/documents/:id</strong>
+                </button>
+            </div>
+            <div style="margin-top: 10px; font-size: 13px; color: #666;">
+                📄 Doc 1: Sales Report (Sensitivity: 3) | 
+                📄 Doc 2: Engineering Specs (Sensitivity: 4) | 
+                📄 Doc 3: Public Doc (Sensitivity: 1) | 
+                📄 Doc 4: VIP Customers (Sensitivity: 5)
+            </div>
+            <div id="result-abac" class="result-box"></div>
+        </div>
+
+        <!-- Combined RBAC + ABAC Card -->
+        <div class="card">
+            <h3>Combined  antara RBAC + ABAC</h3>
+            <p>Update & Delete dengan gabungan Role check + Attribute check</p>
+            <div class="endpoint-grid">
+                <button class="endpoint-btn" onclick="testCombinedAccess('PUT')">
+                    <span class="method method-put">PUT</span>
+                    <strong>/api/documents/:id</strong>
+                    <br><small>Update (Needs: Role + Same Dept + Clearance 3 + Premium)</small>
+                </button>
+                <button class="endpoint-btn" onclick="testCombinedAccess('DELETE')">
+                    <span class="method method-delete">DELETE</span>
+                    <strong>/api/documents/:id</strong>
+                    <br><small>Delete (Needs: Admin/Manager + Same Dept)</small>
+                </button>
+            </div>
+            <div id="result-combined" class="result-box"></div>
+        </div>
+    </div>
+
+    <script>
+        // ============ TOKEN MANAGEMENT ============
+      
+        (function() {
+            const token = localStorage.getItem('token');
+            console.log('🔍 Dashboard check - Token:', token ? '✅ ADA' : '❌ TIDAK ADA');
+            
+            if (!token) {
+                console.error('❌ No token, redirecting...');
+                const cookieToken = document.cookie.split('; ').find(row => row.startsWith('token='));
+                if (cookieToken) {
+                    const tokenValue = cookieToken.split('=')[1];
+                    localStorage.setItem('token', tokenValue);
+                    console.log('✅ Token recovered from cookie');
+                    location.reload();
+                } else {
+                    window.location.href = '/';
+                }
+                return;
+            }
+            
+            console.log('✅ Token valid, dashboard ready');
+        })();
+        function getToken() {
+            return localStorage.getItem('token') || 
+                   document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+        }
+
+        // ============ API TESTING FUNCTIONS ============
+
+        async function testEndpoint(url, method = 'GET', resultId) {
+            const resultBox = document.getElementById(resultId);
+            
+            resultBox.style.display = 'block';
+            resultBox.textContent = '⏳ Loading...';
+            
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultBox.style.color = '#00ff00';
+                    resultBox.textContent = '✅ SUCCESS\n\n' + JSON.stringify(data, null, 2);
+                } else {
+                    resultBox.style.color = '#ff4444';
+                    resultBox.textContent = '❌ FAILED\n\n' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultBox.style.color = '#ff4444';
+                resultBox.textContent = '❌ ERROR: ' + error.message;
+            }
+        }
+
+        async function testDocumentAccess() {
+            const docId = document.getElementById('docId').value;
+            const resultBox = document.getElementById('result-abac');
+            
+            resultBox.style.display = 'block';
+            resultBox.textContent = '⏳ Loading...';
+            
+            try {
+                const response = await fetch(`/api/documents/${docId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultBox.style.color = '#00ff00';
+                    resultBox.textContent = '✅ ABAC CHECK PASSED\n\n' + JSON.stringify(data, null, 2);
+                } else {
+                    resultBox.style.color = '#ff4444';
+                    resultBox.textContent = '❌ ABAC CHECK FAILED\n\n' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultBox.style.color = '#ff4444';
+                resultBox.textContent = '❌ ERROR: ' + error.message;
+            }
+        }
+
+        // Test Combined RBAC + ABAC
+        async function testCombinedAccess(method) {
+            const docId = document.getElementById('docId').value;
+            const resultBox = document.getElementById('result-combined');
+            
+            resultBox.style.display = 'block';
+            resultBox.textContent = '⏳ Loading...';
+            
+            try {
+                const response = await fetch(`/api/documents/${docId}`, {
+                    method: method,
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultBox.style.color = '#00ff00';
+                    resultBox.textContent = `✅ COMBINED RBAC + ABAC CHECK PASSED (${method})\n\n` + JSON.stringify(data, null, 2);
+                } else {
+                    resultBox.style.color = '#ff4444';
+                    resultBox.textContent = `❌ COMBINED CHECK FAILED (${method})\n\n` + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultBox.style.color = '#ff4444';
+                resultBox.textContent = '❌ ERROR: ' + error.message;
+            }
+        }
+
+        // ============ LOGOUT ============
+        
+        function logout() {
+            localStorage.removeItem('token');
+            document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            
+            fetch('/api/auth/logout')
+                .then(() => {
+                    window.location.href = '/';
+                })
+                .catch(() => {
+                    window.location.href = '/';
+                });
+        }
+
+        // ============ DEBUG INFO ============
+        
+        console.log('✅ Dashboard loaded!');
+        console.log('🔑 Token:', getToken() ? getToken().substring(0, 30) + '...' : 'TIDAK ADA');
+        console.log('👤 User:', '<%= user.username %>');
+        console.log('🎭 Role:', '<%= user.role %>');
+        console.log('📋 Silakan test endpoint-endpoint di atas');
+    </script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "username": "admin",
+    "password": "admin123",
+    "email": "admin@example.com",
+    "role": "admin",
+    "department": "IT",
+    "clearance_level": 5,
+    "subscription": "premium"
+  },
+  {
+    "id": 2,
+    "username": "manager",
+    "password": "manager123",
+    "email": "manager@example.com",
+    "role": "manager",
+    "department": "Sales",
+    "clearance_level": 3,
+    "subscription": "premium"
+  },
+  {
+    "id": 3,
+    "username": "user1",
+    "password": "user123",
+    "email": "user1@example.com",
+    "role": "user",
+    "department": "Sales",
+    "clearance_level": 1,
+    "subscription": "free"
+  },
+  {
+    "id": 4,
+    "username": "user2",
+    "password": "user123",
+    "email": "user2@example.com",
+    "role": "user",
+    "department": "Engineering",
+    "clearance_level": 2,
+    "subscription": "premium"
+  },
+  {
+    "id": 5,
+    "username": "ferdyadnan",
+    "email": "ferdyadnan.work@gmail.com",
+    "role": "user",
+    "department": "General",
+    "clearance_level": 1,
+    "subscription": "free",
+    "google_id": "112120205888853676406"
+  },
+  {
+    "id": 6,
+    "username": "ferdyhernando",
+    "email": "fhernando@student.ciputra.ac.id",
+    "role": "user",
+    "department": "General",
+    "clearance_level": 1,
+    "subscription": "free",
+    "google_id": "105674656085507792149"
+  }
+]

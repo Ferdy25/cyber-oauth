@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login - Auth System Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            width: 400px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .btn-login {
+            background: #667eea;
+            color: white;
+            margin-bottom: 15px;
+        }
+        .btn-google {
+            background: white;
+            color: #333;
+            border: 2px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            color: #999;
+            position: relative;
+        }
+        .divider::before,
+        .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 45%;
+            height: 1px;
+            background: #ddd;
+        }
+        .divider::before { left: 0; }
+        .divider::after { right: 0; }
+        .info-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 13px;
+        }
+        .info-box h4 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .info-box ul {
+            list-style: none;
+        }
+        .info-box li {
+            padding: 3px 0;
+            color: #666;
+        }
+        #message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Auth System Demo</h1>
+        <p class="subtitle">RBAC + ABAC + JWT + OAuth 2.0</p>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" name="username" id="username" required placeholder="Masukkan username">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" id="password" required placeholder="Masukkan password">
+            </div>
+            <button type="submit" class="btn btn-login">🔑 Login with JWT</button>
+        </form>
+        
+        <div class="divider">ATAU</div>
+        
+        <button onclick="loginWithGoogle()" class="btn btn-google">
+            🚀 Login with Google (OAuth 2.0)
+        </button>
+        
+        <div id="message"></div>
+        
+        <div class="info-box">
+            <h4>📋 Demo Accounts:</h4>
+            <ul>
+                <li><strong>Admin:</strong> admin / admin123</li>
+                <li><strong>Manager:</strong> manager / manager123</li>
+                <li><strong>User 1:</strong> user1 / user123</li>
+                <li><strong>User 2:</strong> user2 / user123</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                const msgDiv = document.getElementById('message');
+                msgDiv.style.display = 'block';
+                
+                if (response.ok) {
+                    msgDiv.className = 'success';
+                    msgDiv.innerHTML = `
+                        ✅ ${data.message}<br>
+                        Role: ${data.user.role}<br>
+                        Redirecting...
+                    `;
+                    localStorage.setItem('token', data.token);
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 1000);
+                } else {
+                    msgDiv.className = 'error';
+                    msgDiv.textContent = `❌ ${data.error}`;
+                }
+            } catch (error) {
+                const msgDiv = document.getElementById('message');
+                msgDiv.style.display = 'block';
+                msgDiv.className = 'error';
+                msgDiv.textContent = `❌ Error: ${error.message}`;
+            }
+        });
+
+        function loginWithGoogle() {
+            window.location.href = '/auth/google';
+        }
+    </script>
+</body>
+</html>
